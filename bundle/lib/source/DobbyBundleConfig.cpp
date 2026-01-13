@@ -164,11 +164,13 @@ bool DobbyBundleConfig::isValid() const
 
 uid_t DobbyBundleConfig::userId() const
 {
+    std::lock_guard<std::mutex> locker(mLock);
     return mUserId;
 }
 
 gid_t DobbyBundleConfig::groupId() const
 {
+    std::lock_guard<std::mutex> locker(mLock);
     return mGroupId;
 }
 
@@ -244,6 +246,7 @@ const std::string& DobbyBundleConfig::rootfsPath() const
 
 bool DobbyBundleConfig::restartOnCrash() const
 {
+    std::lock_guard<std::mutex> locker(mLock);
     return mRestartOnCrash;
 }
 
@@ -286,6 +289,7 @@ const std::map<std::string, Json::Value>& DobbyBundleConfig::legacyPlugins() con
 
 const std::map<std::string, Json::Value>& DobbyBundleConfig::rdkPlugins() const
 {
+    std::lock_guard<std::mutex> locker(mLock);
     return mRdkPlugins;
 }
 

@@ -223,7 +223,7 @@ bool SDBusIpcService::init(const std::string &serviceName,
     if (defaultTimeoutMs <= 0)
         mDefaultTimeoutUsecs = (25 * 1000 * 1000);
     else
-        mDefaultTimeoutUsecs = (defaultTimeoutMs * 1000);
+        mDefaultTimeoutUsecs = (static_cast<uint64_t>(defaultTimeoutMs) * 1000);
 
 
     // eventfd used to wake the poll loop
@@ -426,7 +426,7 @@ std::shared_ptr<IAsyncReplyGetter> SDBusIpcService::invokeMethod(const Method &m
     if (timeoutMs < 0)
         timeoutUsecs = mDefaultTimeoutUsecs;
     else
-        timeoutUsecs = (timeoutMs * 1000);
+        timeoutUsecs = (static_cast<uint64_t>(timeoutMs) * 1000);
 
     // create the reply getter
     std::shared_ptr<SDBusAsyncReplyGetter> replyGetter =
@@ -504,7 +504,7 @@ bool SDBusIpcService::invokeMethod(const Method &method,
     if (timeoutMs < 0)
         timeoutUsecs = mDefaultTimeoutUsecs;
     else
-        timeoutUsecs = (timeoutMs * 1000);
+        timeoutUsecs = (static_cast<uint64_t>(timeoutMs) * 1000);
 
     // clear the reply args list
     replyArgs.clear();

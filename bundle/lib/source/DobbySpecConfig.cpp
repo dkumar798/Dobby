@@ -917,8 +917,8 @@ bool DobbySpecConfig::processUserNs(const Json::Value& value,
 bool DobbySpecConfig::processRtPriority(const Json::Value& value,
                                         ctemplate::TemplateDictionary* dictionary)
 {
-    int rtPriorityDefault;
-    int rtPriorityLimit;
+    int rtPriorityDefault = 0;
+    int rtPriorityLimit = 0;
 
     if (mSpecVersion == SpecVersion::Version1_0)
     {

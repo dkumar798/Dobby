@@ -166,9 +166,12 @@ bool DynamicMountDetails::onCreateContainer() const
                     // Creating the file first ensures an inode exists for the
                     // bind mount to target.
                     int fd = open(targetPath.c_str(), O_RDONLY | O_CREAT, 0644);
-                    if ((fd == 0) || (errno == EEXIST))
+                    if ((fd >= 0) || (errno == EEXIST))
                     {
-                        close(fd);
+                        if (fd >= 0)
+                        {
+                            close(fd);
+                        }
                         success = true;
                     }
                     else

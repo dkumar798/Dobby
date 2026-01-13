@@ -258,8 +258,11 @@ void OOMCrash::createFileForOOM()
             if (errno != ENOENT)
                 AI_LOG_ERROR("failed to open '%s' (%d - %s)", path.c_str(), errno, strerror(errno));
         }
-        AI_LOG_INFO("%s file created",memoryExceedFile.c_str());
-        fclose(fp);
+        else
+        {
+            AI_LOG_INFO("%s file created",memoryExceedFile.c_str());
+            fclose(fp);
+        }
     }
     else
     {

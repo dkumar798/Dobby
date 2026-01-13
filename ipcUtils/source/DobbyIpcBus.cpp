@@ -63,7 +63,6 @@ DobbyIpcBus::~DobbyIpcBus()
     {
         std::unique_lock<std::mutex> locker(mLock);
         mServiceChangeQueue.emplace_back(ServiceChangeEvent::Terminate);
-        locker.unlock();
 
         mServiceChangeCond.notify_all();
         mServiceChangeThread.join();

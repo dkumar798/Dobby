@@ -385,10 +385,6 @@ void Dobby::logJournaldPrinter(int level, const char *file, const char *func,
         case AI_DEBUG_LEVEL_DEBUG:
             logLevel = "DBG: ";
             break;
-        default:
-	    AI_LOG_WARN("Unknown debug level: %d", level);
-            logLevel = ": ";
-            break;
     }
 
     sd_journal_send("SYSLOG_IDENTIFIER=DobbyDaemon",
@@ -719,7 +715,7 @@ void Dobby::ping(std::shared_ptr<AI_IPC::IAsyncReplySender> replySender)
 
     // If running as systemd service then also use this to wag the dog
 #if defined(RDK) && defined(USE_SYSTEMD)
-    mWorkQueue->postWork(
+    if (!mWorkQueue->postWork(
         [this]()
         {
             if (mWatchdogTimerId >= 0)
@@ -730,8 +726,10 @@ void Dobby::ping(std::shared_ptr<AI_IPC::IAsyncReplySender> replySender)
                     AI_LOG_SYS_ERROR(-ret, "failed to send watchdog notification");
                 }
             }
-        }
-    );
+        }))
+    {
+        AI_LOG_WARN("failed to queue watchdog notification work");
+    }
 #endif
 
     AI_LOG_FN_EXIT();
@@ -1999,8 +1997,10 @@ void Dobby::createBundle(std::shared_ptr<AI_IPC::IAsyncReplySender> replySender)
                     // Try and get container stats
                     bool result = manager->createBundle(id, spec);
 
-                    // Fire off the reply
-                    replySender->sendReply({ result });
+                    if (!replySender->sendReply({ result }))
+                    {
+                        AI_LOG_ERROR("failed to send createBundle reply");
+                    }
                 };
 
             // Queue the work, if successful then we're done
@@ -2050,8 +2050,10 @@ void Dobby::getSpec(std::shared_ptr<AI_IPC::IAsyncReplySender> replySender)
                 // Get the container spec
                 std::string spec = manager->specOfContainer(descriptor);
 
-                // Fire off the reply
-                replySender->sendReply({ spec });
+                if (!replySender->sendReply({ spec }))
+                {
+                    AI_LOG_ERROR("failed to send getSpec reply");
+                }
             };
 
         // Queue the work, if successful then we're done

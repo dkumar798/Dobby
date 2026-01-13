@@ -200,10 +200,13 @@ bool OpenCDMPlugin::enableTmpOCDMDir(const std::shared_ptr<IDobbyStartState>& st
         return false;
     }
 
-    // can now add to the bind mount list
-    startupState->addMount(dirPath, dirPath, "bind",
-                           (MS_BIND | MS_NOSUID | MS_NODEV | MS_NOEXEC));
-     return true;
+    if (!startupState->addMount(dirPath, dirPath, "bind",
+                                (MS_BIND | MS_NOSUID | MS_NODEV | MS_NOEXEC)))
+    {
+        AI_LOG_ERROR("failed to add bind mount for OCDM directory '%s'", dirPath.c_str());
+        return false;
+    }
+    return true;
  }
 
 // -----------------------------------------------------------------------------

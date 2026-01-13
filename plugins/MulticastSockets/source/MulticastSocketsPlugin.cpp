@@ -109,7 +109,7 @@ bool MulticastSocketPlugin::postConstruction(const ContainerId &id,
         int duppedSocket = startupState->addFileDescriptor(mName, socket);
         close(socket); //close original fd, it's already dupped and stored in startupState
 
-        if (duppedSocket == -1)
+        if (duppedSocket < 0)
         {
             AI_LOG_ERROR("Failed to duplicate server socket for container %s", id.c_str());
             return false;
@@ -130,7 +130,7 @@ bool MulticastSocketPlugin::postConstruction(const ContainerId &id,
         int duppedSocket = startupState->addFileDescriptor(mName, socket);
         close(socket); //close original fd, it's already dupped and stored in startupState
 
-        if (duppedSocket == -1)
+        if (duppedSocket < 0)
         {
             AI_LOG_ERROR("Failed to duplicate server socket for container %s", id.c_str());
             return false;
@@ -212,7 +212,7 @@ std::vector<MulticastSocketPlugin::MulticastSocket> MulticastSocketPlugin::parse
         multicastSocket.portNumber = static_cast<in_port_t>(port.asInt());
         multicastSocket.name = name.asString();
 
-        socketsVec.push_back(multicastSocket);
+        socketsVec.push_back(std::move(multicastSocket));
     }
 
     return socketsVec;

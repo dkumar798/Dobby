@@ -130,9 +130,9 @@ bool AnonymousFile::copyContentTo(const std::string& destFile)
     }
 
     long fileSize = getFileSize(fp);
-    if (!fileSize)
+    if (fileSize <= 0)
     {
-        AI_LOG_DEBUG("Empty file for fd %d", mFd);
+        AI_LOG_DEBUG("Empty or invalid file size %ld for fd %d", fileSize, mFd);
 	fclose(fp);
         fp = nullptr;
         AI_LOG_FN_EXIT();

@@ -100,6 +100,7 @@ void containerStopCallback(int32_t cd, const std::string &containerId,
     if (state == IDobbyProxyEvents::ContainerState::Stopped && containerId == *id)
     {
         AI_LOG_INFO("Container %s has stopped", containerId.c_str());
+        std::lock_guard<std::mutex> locker(gLock);
         promise.set_value();
     }
 }
@@ -119,6 +120,7 @@ void containerWaitCallback(int32_t cd, const std::string &containerId,
     if (state == wp->state && containerId == wp->containerId)
     {
         AI_LOG_INFO("Wait complete");
+        std::lock_guard<std::mutex> locker(gLock);
         promise.set_value();
     }
 }
@@ -1552,7 +1554,7 @@ static void parseArgs(const int argc, char **argv)
                     fprintf(stderr, "Warning: Unknown option `-%c'.\n", optopt);
                 else
                     fprintf(stderr, "Warning: Unknown option character `\\x%x'.\n", optopt);
-
+                /* fall through */
             default:
                 exit(EXIT_FAILURE);
                 break;

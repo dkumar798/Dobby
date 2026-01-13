@@ -169,7 +169,6 @@ void ServiceMonitor::onServiceNotification(bool added)
     {
         mState = newState;
 
-        locker.unlock();
 
         if (mStateChangeHandler)
             mStateChangeHandler(newState);
@@ -198,7 +197,6 @@ void ServiceMonitor::onReadyNotification(const AI_IPC::VariantList& args)
         // set the state back to ready
         mState = State::Ready;
 
-        locker.unlock();
 
         // call the registered handler
         if (mStateChangeHandler)
@@ -220,7 +218,6 @@ bool ServiceMonitor::onTimer()
 
     if (mState != State::Ready)
     {
-        locker.unlock();
 
         sendIsReadyRequest();
     }

@@ -136,7 +136,6 @@ DobbyProxy::~DobbyProxy()
     {
         std::unique_lock<std::mutex> locker(mStateChangeLock);
         mStateChangeQueue.emplace_back(StateChangeEvent::Terminate);
-        locker.unlock();
 
         mStateChangeCond.notify_all();
         mStateChangeThread.join();

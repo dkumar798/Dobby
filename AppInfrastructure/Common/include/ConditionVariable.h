@@ -188,7 +188,6 @@ public:
         else
         {
             __ConditionVariableThrowOnError(err);
-            return std::cv_status::timeout;
         }
     }
 

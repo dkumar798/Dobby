@@ -503,9 +503,10 @@ void DobbyManager::cleanupContainersShutdown()
                 // container must be in uninterrable sleep and we cannot do anything
                 // Remove it container from the list (even though it wasn't clean up)
                 // to avoid repeating indefinitely. It will be cleaned on boot-up
+                std::string containerId = it->first.c_str();
                 it = mContainers.erase(it);
-                AI_LOG_ERROR("Failed to stop container %s. Will attempt to clean up at daemon restart", it->first.c_str());
-            }
+                AI_LOG_ERROR("Failed to stop container %s. Will attempt to clean up at daemon restart", containerId.c_str());
+	    }
             else
             {
                 // This would normally be done async by the runc monitor thread, but we're
@@ -1656,7 +1657,7 @@ bool DobbyManager::hibernateContainer(int32_t cd, const std::string& options)
 
                 uint32_t pid = pidIt->asUInt();
                 ret  = DobbyHibernate::HibernateProcess(pid, DobbyHibernate::DFL_TIMEOUTE_MS,
-                        DobbyHibernate::DFL_LOCATOR, std::move(dest), compress);
+                        DobbyHibernate::DFL_LOCATOR, dest, compress);
                 if (ret != DobbyHibernate::Error::ErrorNone)
                 {
                     AI_LOG_WARN("Error hibernating pid: '%d'", pid);
@@ -3404,6 +3405,7 @@ bool DobbyManager::invalidContainerCleanupTask()
                 // Pid is still valid. Attempt to send SIGKILL
                 mRunc->killCont(it->first, SIGKILL, true);
 
+                // Note: This sleep is in a cleanup task that runs periodically, holding lock briefly is acceptable
                 // Did we actually kill it? Give it some time, then check the status
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 DobbyRunC::ContainerStatus state = mRunc->state(it->first);

@@ -195,7 +195,6 @@ private:
         {
             cv.notify_all();
         }
-        lock.unlock();
     }
 
 protected:

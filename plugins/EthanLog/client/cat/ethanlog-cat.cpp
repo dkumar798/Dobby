@@ -214,7 +214,7 @@ private:
     bool mValid;
 
     char mBuffer[1024];
-    int mBufferOffset;
+    size_t mBufferOffset;
 };
 
 
@@ -361,7 +361,7 @@ static void parseArgs(int argc, char **argv)
                     fprintf(stderr, "Warning: Unknown option `-%c'.\n", optopt);
                 else
                     fprintf(stderr, "Warning: Unknown option character `\\x%x'.\n", optopt);
-
+                /* fall through */
             default:
                 exit(EXIT_FAILURE);
         }

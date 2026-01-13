@@ -64,7 +64,7 @@ DobbyLogRelay::DobbyLogRelay(const std::string &sourceSocketPath,
 
         mDestinationSocketAddress = {};
         mDestinationSocketAddress.sun_family = AF_UNIX;
-        strcpy(mDestinationSocketAddress.sun_path, mDestinationSocketPath.c_str());
+        strncpy(mDestinationSocketAddress.sun_path, mDestinationSocketPath.c_str(), sizeof(mDestinationSocketAddress.sun_path) - 1);
 
         AI_LOG_INFO("Created log relay from %s to %s", mSourceSocketPath.c_str(), mDestinationSocketPath.c_str());
     }
@@ -196,7 +196,7 @@ int DobbyLogRelay::createDgramSocket(const std::string &path)
 
     struct sockaddr_un address = {};
     address.sun_family = AF_UNIX;
-    strcpy(address.sun_path, path.c_str());
+    strncpy(address.sun_path, path.c_str(), sizeof(address.sun_path) - 1);
 
     if (bind(sockFd, (const struct sockaddr *)&address, sizeof(address)) < 0)
     {

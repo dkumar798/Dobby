@@ -44,7 +44,6 @@ void ThreadedDispatcher::post(std::function<void ()> work)
     if(running)
     {
         q.push_back(work);
-        lock.unlock();
         cv.notify_one();
     }
     else
@@ -74,7 +73,6 @@ void syncCallback(std::mutex* lock, std::condition_variable* cond, bool* fired)
     std::unique_lock<std::mutex> locker(*lock);
     *fired = true;
     cond->notify_all();
-    locker.unlock();
 }
 } // namespace
 /**
@@ -117,7 +115,6 @@ void ThreadedDispatcher::sync()
     }
     // Add the work object to the queue which takes the lock and sets 'fired' to true
     q.push_back(std::bind(syncCallback, &lock, &cond, &fired));
-    qlocker.unlock();
     cv.notify_one();
     // Wait for 'fired' to become true
     std::unique_lock<std::mutex> locker(lock);
@@ -126,30 +123,33 @@ void ThreadedDispatcher::sync()
         cond.wait(locker);
     }
 }
-namespace
-{
-void unlockAndSetFlagToFalse(std::mutex& m, bool& flag)
-{
-    using namespace std;
-    m.unlock();
-    flag = false;
-}
-}
+
 /**
  * @brief Perform any work remaining in the queue, then stop accepting new work.
  */
 void ThreadedDispatcher::flush()
 {
     //To ensure all the work that is in the queue is done, we lock a mutex.
-    //post a job to the queue that unlocks it and stops running further jobs.
+    //post a job to the queue that signals completion via condition variable.
     //Then block here until that's done.
     if(running)
     {
-        std::mutex m2;
-        m2.lock();
-        post(bind(unlockAndSetFlagToFalse, std::ref(m2), std::ref(this->running)));
-        m2.lock();
-        m2.unlock();
+        std::mutex flushMutex;
+        std::condition_variable flushCond;
+        bool flushed = false;
+
+        std::unique_lock<std::mutex> locker(flushMutex);
+        post([&]() {
+            std::lock_guard<std::mutex> lock(flushMutex);
+            flushed = true;
+            running = false;
+            flushCond.notify_one();
+        });
+
+        while (!flushed) {
+            flushCond.wait(locker);
+        }
+
         stop();
     }
     else
@@ -164,7 +164,6 @@ void ThreadedDispatcher::stop()
 {
     std::unique_lock<std::mutex> lock(m);
     running = false;
-    lock.unlock();
     cv.notify_one();
     t.join();
 }

@@ -536,7 +536,7 @@ std::string DobbyTemplate::_apply(const ctemplate::TemplateDictionaryInterface* 
 
     if (!mTemplateCache->ExpandNoLoad(mTemplateKey,
                                       prettyPrint ? ctemplate::STRIP_WHITESPACE
-                                                  : ctemplate::STRIP_WHITESPACE,
+                                                  : ctemplate::DO_NOT_STRIP,
                                       dictionary, nullptr, &result))
     {
         AI_LOG_ERROR("template cache expand on load failed");
@@ -654,7 +654,7 @@ bool DobbyTemplate::_applyAt(int dirFd, const std::string& fileName,
     bool success = mTemplateCache->ExpandNoLoad(mTemplateKey,
                                                 prettyPrint ?
                                                     ctemplate::STRIP_WHITESPACE :
-                                                    ctemplate::STRIP_WHITESPACE,
+                                                    ctemplate::DO_NOT_STRIP,
                                                 dictionary, nullptr, &emitter);
     if (!success)
     {
