@@ -482,6 +482,7 @@ void DobbyManager::cleanupContainersShutdown()
 {
     AI_LOG_FN_ENTRY();
 
+    std::lock_guard<std::mutex> locker(mLock);
     AI_LOG_INFO("Dobby shutting down - stopping %lu containers", mContainers.size());
 
     auto it = mContainers.begin();
@@ -1633,7 +1634,7 @@ bool DobbyManager::hibernateContainer(int32_t cd, const std::string& options)
     }
 
     std::thread hibernateThread =
-        std::thread([=]()
+        std::thread([id, cd, dest = std::move(dest), compress, this]()
         {
             DobbyHibernate::Error ret = DobbyHibernate::Error::ErrorNone;
             // create a stats object for the container to get list of PIDs
@@ -3405,7 +3406,6 @@ bool DobbyManager::invalidContainerCleanupTask()
                 // Pid is still valid. Attempt to send SIGKILL
                 mRunc->killCont(it->first, SIGKILL, true);
 
-                // Note: This sleep is in a cleanup task that runs periodically, holding lock briefly is acceptable
                 // Did we actually kill it? Give it some time, then check the status
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 DobbyRunC::ContainerStatus state = mRunc->state(it->first);

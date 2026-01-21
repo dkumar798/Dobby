@@ -320,6 +320,7 @@ bool DobbyConfig::changeProcessArgs(const std::string& command)
  */
 void DobbyConfig::printCommand() const
 {
+    std::lock_guard<std::mutex> locker(mLock);
     std::shared_ptr<rt_dobby_schema> cfg = config();
     if (cfg == nullptr)
     {

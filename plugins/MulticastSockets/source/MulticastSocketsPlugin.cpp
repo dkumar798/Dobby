@@ -106,6 +106,12 @@ bool MulticastSocketPlugin::postConstruction(const ContainerId &id,
     for (const MulticastSocket &serverSocket : serverSockets)
     {
         int socket = createServerSocket(serverSocket.ipAddress, serverSocket.portNumber);
+        if (socket < 0)
+        {
+            AI_LOG_ERROR("Failed to create server socket for container %s", id.c_str());
+	    return false;
+        }
+
         int duppedSocket = startupState->addFileDescriptor(mName, socket);
         close(socket); //close original fd, it's already dupped and stored in startupState
 
@@ -116,7 +122,7 @@ bool MulticastSocketPlugin::postConstruction(const ContainerId &id,
         }
 
         char envVar[256];
-        snprintf(envVar, sizeof(envVar), "MCAST_SERVER_SOCKET_%s_FD=%u", serverSocket.name.c_str(), duppedSocket);
+        snprintf(envVar, sizeof(envVar), "MCAST_SERVER_SOCKET_%s_FD=%d", serverSocket.name.c_str(), duppedSocket);
         if (!startupState->addEnvironmentVariable(envVar))
         {
             AI_LOG_ERROR("Failed to set env variable for container %s", id.c_str());
@@ -127,6 +133,12 @@ bool MulticastSocketPlugin::postConstruction(const ContainerId &id,
     for (const std::string &clientSocket : clientSockets)
     {
         int socket = createClientSocket();
+        if (socket < 0)
+        {
+            AI_LOG_ERROR("Failed to create client socket for container %s", id.c_str());
+            return false;
+        }
+
         int duppedSocket = startupState->addFileDescriptor(mName, socket);
         close(socket); //close original fd, it's already dupped and stored in startupState
 
@@ -137,7 +149,7 @@ bool MulticastSocketPlugin::postConstruction(const ContainerId &id,
         }
 
         char envVar[256];
-        snprintf(envVar, sizeof(envVar), "MCAST_CLIENT_SOCKET_%s_FD=%u", clientSocket.c_str(), duppedSocket);
+        snprintf(envVar, sizeof(envVar), "MCAST_CLIENT_SOCKET_%s_FD=%d", clientSocket.c_str(), duppedSocket);
         if (!startupState->addEnvironmentVariable(envVar))
         {
             AI_LOG_ERROR("Failed to set env variable for container %s", id.c_str());

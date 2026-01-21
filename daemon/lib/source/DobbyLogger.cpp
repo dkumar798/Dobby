@@ -90,30 +90,34 @@ DobbyLogger::DobbyLogger(const std::shared_ptr<const IDobbySettings> &settings)
 
 DobbyLogger::~DobbyLogger()
 {
-    AI_LOG_FN_ENTRY();
+    try {
+        AI_LOG_FN_ENTRY();
 
-    // Container loggers should remove themselves from the poll loop, but it doesn't really
-    // matter since if this class is being destructed the whole daemon is almost certainly
-    // shutting down
-    if (mJournaldRelay)
-    {
-        mJournaldRelay->removeFromPollLoop(mPollLoop);
+        // Container loggers should remove themselves from the poll loop, but it doesn't really
+        // matter since if this class is being destructed the whole daemon is almost certainly
+        // shutting down
+        if (mJournaldRelay)
+        {
+            mJournaldRelay->removeFromPollLoop(mPollLoop);
+        }
+        if (mSyslogRelay)
+        {
+            mSyslogRelay->removeFromPollLoop(mPollLoop);
+        }
+        mPollLoop->stop();
+
+        //  Close all our open sockets
+        if (shutdown(mSocketFd, SHUT_RDWR) < 0)
+        {
+            AI_LOG_SYS_WARN(errno, "Failed to shutdown socket %s", mSocketPath.c_str());
+        }
+
+        closeAndDeleteSocket(mSocketFd, mSocketPath);
+
+        AI_LOG_FN_EXIT();
+    } catch (const std::exception& e) {
+        AI_LOG_SYS_ERROR(errno, "Caught Exception in ~DobbyLogger: %s", e.what());
     }
-    if (mSyslogRelay)
-    {
-        mSyslogRelay->removeFromPollLoop(mPollLoop);
-    }
-    mPollLoop->stop();
-
-    //  Close all our open sockets
-    if (shutdown(mSocketFd, SHUT_RDWR) < 0)
-    {
-        AI_LOG_SYS_WARN(errno, "Failed to shutdown socket %s", mSocketPath.c_str());
-    }
-
-    closeAndDeleteSocket(mSocketFd, mSocketPath);
-
-    AI_LOG_FN_EXIT();
 }
 
 /**

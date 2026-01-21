@@ -41,6 +41,8 @@ DobbyLogRelay::DobbyLogRelay(const std::string &sourceSocketPath,
                              const std::string &destinationSocketPath)
     : mSourceSocketPath(sourceSocketPath),
       mDestinationSocketPath(destinationSocketPath),
+      mDestinationSocketFd(-1),
+      mDestinationSocketAddress{},
       mBuf{}
 {
     AI_LOG_FN_ENTRY();

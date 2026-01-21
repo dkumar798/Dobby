@@ -344,7 +344,6 @@ bool DobbyRdkPluginManager::loadPlugins()
 
     free(namelist);
     closedir(dir);
-    // dirFd is now invalid - closedir() closed it
 
     AI_LOG_FN_EXIT();
     return true;

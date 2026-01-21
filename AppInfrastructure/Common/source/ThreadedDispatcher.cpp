@@ -132,8 +132,10 @@ void ThreadedDispatcher::flush()
     //To ensure all the work that is in the queue is done, we lock a mutex.
     //post a job to the queue that signals completion via condition variable.
     //Then block here until that's done.
+    std::unique_lock<std::mutex> runningLocker(m);
     if(running)
     {
+        runningLocker.unlock();
         std::mutex flushMutex;
         std::condition_variable flushCond;
         bool flushed = false;
@@ -154,6 +156,7 @@ void ThreadedDispatcher::flush()
     }
     else
     {
+        runningLocker.unlock();
         AI_LOG_WARN("This dispatcher is no longer running. Ignoring flush request.");
     }
 }

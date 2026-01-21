@@ -153,11 +153,7 @@ bool DynamicMountDetails::onCreateContainer() const
             // Recursively create destination directory structure
             if (mUtils->mkdirRecursive(dirPath, 0755) || (errno == EEXIST))
             {
-                if (isDir)
-                {
-                    success = true;
-                }
-                else
+                if (!isDir)
                 {
                     // If mounting a file, make sure a file with the same name
                     // exists at the desination path prior to bind mounting.
@@ -166,12 +162,9 @@ bool DynamicMountDetails::onCreateContainer() const
                     // Creating the file first ensures an inode exists for the
                     // bind mount to target.
                     int fd = open(targetPath.c_str(), O_RDONLY | O_CREAT, 0644);
-                    if ((fd >= 0) || (errno == EEXIST))
+                    if (fd >= 0)
                     {
-                        if (fd >= 0)
-                        {
-                            close(fd);
-                        }
+                        close(fd);
                         success = true;
                     }
                     else
