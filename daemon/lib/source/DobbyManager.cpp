@@ -1639,8 +1639,8 @@ bool DobbyManager::hibernateContainer(int32_t cd, const std::string& options)
             DobbyHibernate::Error ret = DobbyHibernate::Error::ErrorNone;
             // create a stats object for the container to get list of PIDs
             std::unique_lock<std::mutex> locker(mLock);
-            DobbyStats stats(it->first, mEnvironment, mUtilities);
-            Json::Value jsonPids = DobbyStats(it->first, mEnvironment, mUtilities).stats()["pids"];
+            DobbyStats stats(id, mEnvironment, mUtilities);
+            Json::Value jsonPids = DobbyStats(id, mEnvironment, mUtilities).stats()["pids"];
             locker.unlock();
 
             for (auto pidIt = jsonPids.begin(); pidIt != jsonPids.end(); ++pidIt)
