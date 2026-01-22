@@ -482,7 +482,7 @@ void DobbyManager::cleanupContainersShutdown()
 {
     AI_LOG_FN_ENTRY();
 
-    std::lock_guard<std::mutex> locker(mLock);
+   // std::lock_guard<std::mutex> locker(mLock);
     AI_LOG_INFO("Dobby shutting down - stopping %lu containers", mContainers.size());
 
     auto it = mContainers.begin();
