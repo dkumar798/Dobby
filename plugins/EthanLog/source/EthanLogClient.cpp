@@ -495,6 +495,11 @@ void EthanLogClient::processLogData()
                 // skip empty fields
                 if (fieldLen > 0)
                 {
+                    if (numFields < 0 || numFields >= maxFields)
+                    {
+                        ret = -1;
+                        break;
+                    }
                     switch (*thisField++)
                     {
                         case 'L':
