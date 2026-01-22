@@ -165,7 +165,6 @@ bool DynamicMountDetails::onCreateContainer() const
                     if (fd >= 0)
                     {
                         close(fd);
-                        success = true;
                     }
                     else
                     {

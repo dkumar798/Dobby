@@ -494,13 +494,20 @@ void DobbyManager::cleanupContainersShutdown()
             (it->second->state == DobbyContainer::State::Hibernated) || \
             (it->second->state == DobbyContainer::State::Awakening))
         {
-            AI_LOG_INFO("Stopping container %s", it->first.c_str());
+            ContainerId id = it->first;
             int32_t descriptor = it->second->descriptor;
+            AI_LOG_INFO("Stopping container %s", id.c_str());
+            ++it;
             locker.unlock();
             // By calling the "proper" stop method here, any listening services will be
             // notified of the container stop event
             bool stopSuccess = stopContainer(descriptor, false);
             locker.lock();
+
+            auto eraseIt = mContainers.find(id);
+            if (eraseIt == mContainers.end())
+                continue;
+
             if (!stopSuccess)
             {
                 // As DobbyRunC::killCont already handles problem of masked SIGTERM in
@@ -508,17 +515,20 @@ void DobbyManager::cleanupContainersShutdown()
                 // container must be in uninterrable sleep and we cannot do anything
                 // Remove it container from the list (even though it wasn't clean up)
                 // to avoid repeating indefinitely. It will be cleaned on boot-up
-                std::string containerId = it->first.c_str();
-                it = mContainers.erase(it);
-                AI_LOG_ERROR("Failed to stop container %s. Will attempt to clean up at daemon restart", containerId.c_str());
+                mContainers.erase(eraseIt);
+                AI_LOG_ERROR("Failed to stop container %s. Will attempt to clean up at daemon restart", id.c_str());
 	    }
             else
             {
                 // This would normally be done async by the runc monitor thread, but we're
                 // shutting down so we want to run synchronously
-                handleContainerTerminate(it->first, it->second, 0);
-                it = mContainers.erase(it);
+                handleContainerTerminate(eraseIt->first, eraseIt->second, 0);
+                mContainers.erase(eraseIt);
             }
+        }
+        else
+        {
+            ++it;
         }
     }
 

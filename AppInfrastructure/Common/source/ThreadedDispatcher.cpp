@@ -135,19 +135,25 @@ void ThreadedDispatcher::flush()
     std::unique_lock<std::mutex> runningLocker(m);
     if(running)
     {
-        runningLocker.unlock();
         std::mutex flushMutex;
         std::condition_variable flushCond;
         bool flushed = false;
 
         std::unique_lock<std::mutex> locker(flushMutex);
         post([&]() {
-            std::lock_guard<std::mutex> lock(flushMutex);
-            flushed = true;
-            running = false;
+            {
+                std::lock_guard<std::mutex> lock(flushMutex);
+                flushed = true;
+            }
+
+            {
+                std::lock_guard<std::mutex> runningLock(m);
+                running = false;
+            }
             flushCond.notify_one();
         });
 
+        runningLocker.unlock();
         while (!flushed) {
             flushCond.wait(locker);
         }
@@ -156,7 +162,6 @@ void ThreadedDispatcher::flush()
     }
     else
     {
-        runningLocker.unlock();
         AI_LOG_WARN("This dispatcher is no longer running. Ignoring flush request.");
     }
 }
@@ -179,6 +184,7 @@ ThreadedDispatcher::~ThreadedDispatcher()
 }
 bool ThreadedDispatcher::hasMoreWorkOrWasStopRequested()
 {
+    std::unique_lock<std::mutex> lock(m);
     return !q.empty() || !running;
 }
 void ThreadedDispatcher::doWork(const std::string& name, int priority)
