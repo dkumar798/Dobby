@@ -135,6 +135,7 @@ void ThreadedDispatcher::flush()
     std::unique_lock<std::mutex> runningLocker(m);
     if(running)
     {
+        runningLocker.unlock();
         std::mutex flushMutex;
         std::condition_variable flushCond;
         bool flushed = false;
@@ -153,7 +154,6 @@ void ThreadedDispatcher::flush()
             flushCond.notify_one();
         });
 
-        runningLocker.unlock();
         while (!flushed) {
             flushCond.wait(locker);
         }

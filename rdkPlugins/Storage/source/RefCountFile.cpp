@@ -109,12 +109,14 @@ int RefCountFile::Increment()
 
     int ref = Read();
 
-    if (ref < 0) {
+    if (ref < 0)
+    {
         AI_LOG_FN_EXIT();
         return ref;
     }
 
-    if (ref >= INT_MAX) {
+    if (ref >= INT_MAX)
+    {
         AI_LOG_ERROR("Reference count overflow at INT_MAX");
         AI_LOG_FN_EXIT();
         return -1;
@@ -123,7 +125,8 @@ int RefCountFile::Increment()
     int newRef = ref + 1;
 
     int writtenRef = Write(newRef);
-    if (writtenRef < 0 || writtenRef > INT_MAX) {
+    if (writtenRef < 0)
+    {
         AI_LOG_ERROR("Invalid ref count returned from Write(): %d", writtenRef);
         AI_LOG_FN_EXIT();
         return -1;

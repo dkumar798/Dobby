@@ -131,17 +131,17 @@ bool OOMCrash::postHalt()
         }
 
         std::string crashFile = path + "/oom_crashed_" + mUtils->getContainerId() + ".txt";
-        if (stat(crashFile.c_str(), &buffer) == 0)
+        if (remove(crashFile.c_str()) != 0)
         {
-            if (remove(crashFile.c_str()) != 0)
+            if (errno != ENOENT)
             {
                 perror("Failed to remove crash file");
                 AI_LOG_WARN("Could not remove crash file: %s (%d - %s)", crashFile.c_str(), errno, strerror(errno));
             }
-            else
-            {
-                AI_LOG_INFO("%s file removed", crashFile.c_str());
-            }
+        }
+        else
+        {
+            AI_LOG_INFO("%s file removed", crashFile.c_str());
         }
     }
 
