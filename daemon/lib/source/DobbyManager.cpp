@@ -482,7 +482,7 @@ void DobbyManager::cleanupContainersShutdown()
 {
     AI_LOG_FN_ENTRY();
 
-    std::lock_guard<std::mutex> locker(mLock);
+    std::unique_lock<std::mutex> locker(mLock);
     AI_LOG_INFO("Dobby shutting down - stopping %lu containers", mContainers.size());
 
     auto it = mContainers.begin();
@@ -495,9 +495,13 @@ void DobbyManager::cleanupContainersShutdown()
             (it->second->state == DobbyContainer::State::Awakening))
         {
             AI_LOG_INFO("Stopping container %s", it->first.c_str());
+            int32_t descriptor = it->second->descriptor;
+            locker.unlock();
             // By calling the "proper" stop method here, any listening services will be
             // notified of the container stop event
-            if (!stopContainer(it->second->descriptor, false))
+            bool stopSuccess = stopContainer(descriptor, false);
+            locker.lock();
+            if (!stopSuccess)
             {
                 // As DobbyRunC::killCont already handles problem of masked SIGTERM in
                 // case we failed to stop it means that it tried to SIGKILL too, so
