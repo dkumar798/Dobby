@@ -263,7 +263,6 @@ IDobbyIPCUtils::BusType DobbyBundleConfig::sessionDbus() const
 
 IDobbyIPCUtils::BusType DobbyBundleConfig::debugDbus() const
 {
-	E
     return mDebugDbus;
 }
 
