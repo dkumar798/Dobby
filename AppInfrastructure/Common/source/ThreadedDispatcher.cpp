@@ -147,7 +147,7 @@ void ThreadedDispatcher::flush()
         m2.lock();
         post(bind(unlockAndSetFlagToFalse, std::ref(m2), std::ref(this->running)));
         /* coverity[lock : FALSE] */
-	m2.lock();
+	    m2.lock();
         m2.unlock();
         stop();
     }
