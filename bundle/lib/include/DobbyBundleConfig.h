@@ -73,13 +73,13 @@ public:
     bool restartOnCrash() const override;
 
 public:
-    std::string& rootfsPath() const override;
+    const std::string& rootfsPath() const override;
 
 public:
     std::shared_ptr<rt_dobby_schema> config() const override;
 
 public:
-    std::map<std::string, Json::Value>& rdkPlugins() const override;
+   const std::map<std::string, Json::Value>& rdkPlugins() const override;
 
 #if defined(LEGACY_COMPONENTS)
 public:
