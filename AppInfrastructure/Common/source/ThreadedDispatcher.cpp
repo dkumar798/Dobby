@@ -129,42 +129,40 @@ void ThreadedDispatcher::sync()
  */
 void ThreadedDispatcher::flush()
 {
-    //To ensure all the work that is in the queue is done, we lock a mutex.
-    //post a job to the queue that signals completion via condition variable.
-    //Then block here until that's done.
-    std::unique_lock<std::mutex> runningLocker(m);
-    if(running)
     {
-        runningLocker.unlock();
-        std::mutex flushMutex;
-        std::condition_variable flushCond;
-        bool flushed = false;
+        std::unique_lock<std::mutex> runningLocker(m);
+        if (!running) {
+            AI_LOG_WARN("This dispatcher is no longer running. Ignoring flush request.");
+            return;
+        }
+    }
 
-        std::unique_lock<std::mutex> locker(flushMutex);
-        post([&]() {
-            {
-                std::lock_guard<std::mutex> lock(flushMutex);
-                flushed = true;
-            }
+    std::mutex flushMutex;
+    std::condition_variable flushCond;
+    bool flushed = false;
 
-            {
-                std::lock_guard<std::mutex> runningLock(m);
-                running = false;
-            }
-            flushCond.notify_one();
-        });
-
-        while (!flushed) {
-            flushCond.wait(locker);
+    std::unique_lock<std::mutex> locker(flushMutex);
+    post([&]() {
+        {
+            std::lock_guard<std::mutex> lock(flushMutex);
+            flushed = true;
         }
 
-        stop();
+        {
+            std::lock_guard<std::mutex> runningLock(m);
+            running = false;
+        }
+
+        flushCond.notify_one();
+    });
+
+    while (!flushed) {
+        flushCond.wait(locker);
     }
-    else
-    {
-        AI_LOG_WARN("This dispatcher is no longer running. Ignoring flush request.");
-    }
+
+    stop();
 }
+
 /**
  * @brief Cancels any work that is not already in progress, stop accepting new work
  */
