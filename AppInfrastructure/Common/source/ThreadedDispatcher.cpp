@@ -124,43 +124,37 @@ void ThreadedDispatcher::sync()
     }
 }
 
+namespace
+{
+void unlockAndSetFlagToFalse(std::mutex& m, bool& flag)
+{
+    using namespace std;
+    m.unlock();
+    flag = false;
+}
+}
 /**
  * @brief Perform any work remaining in the queue, then stop accepting new work.
  */
 void ThreadedDispatcher::flush()
 {
+    //To ensure all the work that is in the queue is done, we lock a mutex.
+    //post a job to the queue that unlocks it and stops running further jobs.
+    //Then block here until that's done.
+    if(running)
     {
-        std::unique_lock<std::mutex> runningLocker(m);
-        if (!running) {
-            AI_LOG_WARN("This dispatcher is no longer running. Ignoring flush request.");
-            return;
-        }
+        std::mutex m2;
+        m2.lock();
+        post(bind(unlockAndSetFlagToFalse, std::ref(m2), std::ref(this->running)));
+        /* coverity[lock : FALSE] */
+	m2.lock();
+        m2.unlock();
+        stop();
     }
-
-    std::mutex flushMutex;
-    std::condition_variable flushCond;
-    bool flushed = false;
-
-    std::unique_lock<std::mutex> locker(flushMutex);
-    post([&]() {
-        {
-            std::lock_guard<std::mutex> lock(flushMutex);
-            flushed = true;
-        }
-
-        {
-            std::lock_guard<std::mutex> runningLock(m);
-            running = false;
-        }
-
-        flushCond.notify_one();
-    });
-
-    while (!flushed) {
-        flushCond.wait(locker);
+    else
+    {
+        AI_LOG_WARN("This dispatcher is no longer running. Ignoring flush request.");
     }
-
-    stop();
 }
 
 /**

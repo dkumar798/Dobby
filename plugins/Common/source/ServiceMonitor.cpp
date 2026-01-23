@@ -148,31 +148,36 @@ void ServiceMonitor::onServiceNotification(bool added)
 {
     AI_LOG_INFO("%s service %s", mServiceName.c_str(), added ? "added" : "removed");
 
-    std::unique_lock<std::mutex> locker(mLock);
+    State newState = State::NotRunning;
+    std::function<void(State)> handler;
 
-    State newState = mState;
-
-    if (added)
     {
-        // move our internal state to running, this is not the same as 'ready'
-        // which we expect to receive shortly
-        if (mState == State::NotRunning)
-            newState = State::Running;
-    }
-    else
-    {
-        newState = State::NotRunning;
+        std::unique_lock<std::mutex> locker(mLock);
+
+        newState = mState;
+
+        if (added)
+        {
+            // move our internal state to running, this is not the same as 'ready'
+            // which we expect to receive shortly
+            if (mState == State::NotRunning)
+                newState = State::Running;
+        }
+        else
+        {
+            newState = State::NotRunning;
+        }
+
+        // call the registered handler
+        if (newState != mState)
+        {
+            mState = newState;
+            handler = mStateChangeHandler;
+        }
     }
 
-    // call the registered handler
-    if (newState != mState)
-    {
-        mState = newState;
-
-
-        if (mStateChangeHandler)
-            mStateChangeHandler(newState);
-    }
+    if (handler)
+        handler(newState);
 }
 
 // -----------------------------------------------------------------------------
@@ -214,13 +219,16 @@ void ServiceMonitor::onReadyNotification(const AI_IPC::VariantList& args)
 bool ServiceMonitor::onTimer()
 {
     // take the lock and check if we think the daemon isn't there
-    std::unique_lock<std::mutex> locker(mLock);
-
-    if (mState != State::Ready)
     {
+        std::unique_lock<std::mutex> locker(mLock);
 
-        sendIsReadyRequest();
+        if (mState == State::Ready)
+        {
+            return true;
+        }
     }
+
+    sendIsReadyRequest();
 
     return true;
 }

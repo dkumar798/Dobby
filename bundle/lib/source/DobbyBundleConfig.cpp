@@ -239,7 +239,7 @@ void DobbyBundleConfig::setUidGidMappings(uid_t userId, gid_t groupId)
     mGroupId = groupId;
 }
 
-const std::string& DobbyBundleConfig::rootfsPath() const
+std::string& DobbyBundleConfig::rootfsPath() const
 {
     std::lock_guard<std::mutex> locker(mLock);
     return mRootfsPath;
@@ -288,7 +288,7 @@ const std::map<std::string, Json::Value>& DobbyBundleConfig::legacyPlugins() con
 }
 #endif //defined(LEGACY_COMPONENTS)
 
-const std::map<std::string, Json::Value>& DobbyBundleConfig::rdkPlugins() const
+std::map<std::string, Json::Value>& DobbyBundleConfig::rdkPlugins() const
 {
     std::lock_guard<std::mutex> locker(mLock);
     return mRdkPlugins;

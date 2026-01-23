@@ -116,7 +116,7 @@ DobbyLogger::~DobbyLogger()
 
         AI_LOG_FN_EXIT();
     } catch (const std::exception& e) {
-        AI_LOG_SYS_ERROR(errno, "Caught Exception in ~DobbyLogger: %s", e.what());
+        AI_LOG_ERROR(errno, "Caught Exception in ~DobbyLogger: %s", e.what());
     }
 }
 
