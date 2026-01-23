@@ -3421,6 +3421,7 @@ bool DobbyManager::invalidContainerCleanupTask()
                 mRunc->killCont(it->first, SIGKILL, true);
 
                 // Did we actually kill it? Give it some time, then check the status
+                /* coverity[sleep : FALSE] */
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 DobbyRunC::ContainerStatus state = mRunc->state(it->first);
 
