@@ -185,6 +185,7 @@ private:
         {
             // We are unregistering an observer so make sure we will not notify unregistered observers
             lock.unlock();
+            /* coverity[missing_lock : FALSE] */
             dispatcher->sync();
             lock.lock();
         }
